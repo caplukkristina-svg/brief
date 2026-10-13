@@ -201,7 +201,8 @@ const SUMMARY = [
   const Q_BY_KEY = Object.fromEntries(ALL_Q.map((q) => [q.key, q]));
 
   // step: 0 — интро, 1..N — этапы, N+1 — финал
-  const state = { step: 0, files: [], mode: null, fileFails: 0, busy: false, restored: false };
+  // seen — экраны, на которых клиент уже был в этой сессии (после перезагрузки страницы ответов нет, и в середину формы не пускаем)
+  const state = { step: 0, files: [], mode: null, fileFails: 0, busy: false, restored: false, seen: new Set([0]) };
 
   /* ---------------- Ссылки на документы ---------------- */
   // Документ открывается окном поверх формы: клиент не уходит на основной сайт и не теряет ответы
@@ -372,6 +373,7 @@ const SUMMARY = [
     if (step === N + 1 && !state.mode) step = N;
     step = Math.max(0, Math.min(N + 1, step));
     state.step = step;
+    state.seen.add(step);
 
     screens().forEach((el, i) => { el.hidden = i !== step; });
     const cur = screens()[step];
@@ -840,7 +842,10 @@ const SUMMARY = [
     });
 
     // Кнопки браузера «назад/вперёд»
-    window.addEventListener("popstate", (e) => go((e.state && e.state.s) || 0, { noPush: true, save: false }));
+    window.addEventListener("popstate", (e) => {
+      const s = (e.state && e.state.s) || 0;
+      go(state.seen.has(s) ? s : 0, { noPush: true, save: false });
+    });
     window.addEventListener("resize", () => growAll());
     window.addEventListener("beforeunload", () => { if (state.mode !== "sent") saveDraft(); });
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => growAll());
@@ -879,8 +884,7 @@ const SUMMARY = [
         fn: () => { if (confirm("Стереть все ответы и начать заново?")) { clearDraft(); location.href = location.pathname; } }
       }, 9000);
     }
-    const hashStep = parseInt(location.hash.slice(1), 10);
-    if (hashStep >= 1 && hashStep <= N) first = hashStep;
+    // Адрес вида #2 из старой сессии игнорируем: ответов уже нет, форма всегда начинается с интро
     try { history.replaceState({ s: first }, "", first === 0 ? location.pathname + location.search : "#" + first); } catch (e) { /* ничего */ }
     go(first, { noPush: true, noFocus: true, save: false });
     growAll();
