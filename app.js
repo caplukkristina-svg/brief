@@ -628,10 +628,14 @@ const SUMMARY = [
     return lines.join("\n") + "\n";
   }
 
+  function answersFileName() {
+    const name = answerText("name").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-|-$/g, "") || "client";
+    return `brief-${name}-${new Date().toISOString().slice(0, 10)}.txt`;
+  }
+
   function downloadAnswers() {
     const text = buildPlainText(collectBlocks());
-    const name = answerText("name").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-|-$/g, "") || "client";
-    const file = `brief-${name}-${new Date().toISOString().slice(0, 10)}.txt`;
+    const file = answersFileName();
     try {
       const url = URL.createObjectURL(new Blob(["﻿" + text], { type: "text/plain;charset=utf-8" }));
       const a = Object.assign(document.createElement("a"), { href: url, download: file });
@@ -652,6 +656,14 @@ const SUMMARY = [
       if (j.ok === false) throw new Error(j.error || "worker error");
       return j;
     } finally { clearTimeout(timer); }
+  }
+
+  // Полный текст ответов уходит в Telegram одним документом .txt (BOM нужен, чтобы кириллица открывалась без кракозябр)
+  async function sendAnswersFile(blocks) {
+    const fd = new FormData();
+    fd.append("file", new Blob(["﻿" + buildPlainText(blocks)], { type: "text/plain;charset=utf-8" }), answersFileName());
+    fd.append("from", answerText("name"));
+    await post(fd, undefined, 60000);
   }
 
   async function sendFiles(from) {
@@ -700,10 +712,16 @@ const SUMMARY = [
       mode = "local";
     } else {
       try {
-        await post(JSON.stringify({ messages: buildMessages(blocks), from: answerText("name") }),
-          { "Content-Type": "text/plain;charset=utf-8" }, 25000);
+        const from = answerText("name"), json = { "Content-Type": "text/plain;charset=utf-8" };
+        const msgs = buildMessages(blocks); // [0] — короткая сводка, дальше полный текст по этапам
+        // 1. Короткое сообщение: кто это и как связаться (видно в уведомлении)
+        await post(JSON.stringify({ messages: [msgs[0] + "\n\n<i>Полные ответы в файле ниже.</i>"], from }), json, 25000);
+        // 2. Все ответы одним файлом .txt. Если файл не ушёл, шлём те же ответы сообщениями
+        try { await sendAnswersFile(blocks); }
+        catch (e) { await post(JSON.stringify({ messages: msgs.slice(1), from }), json, 25000); }
         mode = "sent";
-        state.fileFails = await sendFiles(answerText("name"));
+        // 3. Файлы клиента (логотип, прайс, фото) уходят отдельными документами
+        state.fileFails = await sendFiles(from);
       } catch (e) { mode = "failed"; }
     }
     // Если не ушло в Telegram — сразу отдаём файл, чтобы ответы не потерялись
