@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Бриф на ведение соцсетей — 1225 Digital Design</title>
+  <meta name="description" content="Пошаговый бриф на ведение соцсетей. Заполнение занимает 10–15 минут.">
+  <meta name="theme-color" content="#F5F8F6">
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="assets/logo-black.svg" type="image/svg+xml">
+  <link rel="preload" href="fonts/ActayWide-Bold.otf" as="font" type="font/otf" crossorigin>
+  <link rel="preload" href="fonts/Cygre-Regular.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- Полоса прогресса -->
+<div class="progress" aria-hidden="true"><span id="progressFill"></span></div>
+
+<header class="top">
+  <a class="top__logo" href="#" id="logoLink" aria-label="1225 Digital Design — в начало брифа">
+    <img src="assets/logo-black.svg" alt="1225 Digital Design" width="104" height="43">
+  </a>
+  <div class="top__meta">
+    <span class="save" id="saveState" aria-live="polite"></span>
+    <span class="counter" id="counter" hidden></span>
+  </div>
+</header>
+
+<main id="app">
+
+  <!-- Интро -->
+  <section class="screen intro" id="screen-intro" aria-labelledby="introTitle">
+    <div class="intro__text">
+    <div class="intro__head">
+      <p class="eyebrow">Бриф · 9 этапов</p>
+      <h1 id="introTitle" class="display">Бриф на ведение соцсетей</h1>
+    </div>
+    <div class="intro__body">
+      <p class="lead">Спасибо, что решили работать вместе. Этот бриф помогает мне начать с вашего бизнеса, а не с шаблона.</p>
+      <p>Отвечайте как есть: неточный ответ лучше красивого, а «не знаю» тоже ответ. Заполнение занимает 10–15 минут.</p>
+      <ul class="intro__facts">
+        <li><b>3–6 вопросов</b> на экране, ничего лишнего</li>
+        <li><b>Ответы нигде не сохраняются</b>: не закрывайте вкладку, пока не отправите бриф</li>
+        <li><span class="chip chip--inline">важно</span> пункты самые важные, отвечайте на них в первую очередь</li>
+      </ul>
+      <button type="button" class="btn" id="startBtn">
+        <span id="startLabel">Начать</span>
+        <svg class="btn__arrow" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+    </div>
+    <figure class="intro__figure" id="introFigure">
+      <div class="intro__photo"><img src="" alt="Kristina Capluk" id="introPhotoImg" width="1010" height="1800"></div>
+      <figcaption><b>Kristina Capluk</b><span>Основательница 1225 Digital Design</span></figcaption>
+    </figure>
+  </section>
+
+  <!-- Этапы рисуются из массива STAGES в app.js -->
+  <form id="form" novalidate autocomplete="on">
+    <div id="stages"></div>
+    <!-- Ловушка для ботов: человек это поле не видит -->
+    <div class="hp" aria-hidden="true"><label>Сайт <input type="text" name="website" id="hp" tabindex="-1" autocomplete="off"></label></div>
+  </form>
+
+  <!-- Финал -->
+  <section class="screen done" id="screen-done" aria-labelledby="doneTitle" hidden>
+    <div class="done__photo" id="donePhoto">
+      <img src="" alt="Кристина, 1225 Digital Design" id="donePhotoImg" width="800" height="1000">
+    </div>
+    <div class="done__body">
+      <p class="eyebrow" id="doneEyebrow">Бриф получен</p>
+      <h1 id="doneTitle" class="display" tabindex="-1">Спасибо!</h1>
+      <p class="lead" id="doneLead">Я получила ваш бриф и скоро с вами свяжусь.</p>
+      <p class="notice" id="doneNotice" hidden></p>
+
+      <h2 class="done__sub" id="doneNextTitle">Что будет дальше</h2>
+      <ol class="steps" id="doneSteps"></ol>
+
+      <div class="done__actions">
+        <a class="btn" id="tgBtn" href="#" target="_blank" rel="noopener">Написать в Telegram</a>
+        <button type="button" class="btn btn--ghost" id="dlBtn">Скачать копию ответов</button>
+      </div>
+
+      <div class="rescue" id="rescue" hidden>
+        <button type="button" class="btn btn--ghost btn--small" id="copyBtn">Скопировать ответы</button>
+        <details>
+          <summary>Файл не скачался? Вот текст ответов</summary>
+          <textarea id="rescueText" readonly rows="8"></textarea>
+        </details>
+      </div>
+
+      <button type="button" class="textlink" id="editBtn">← Вернуться и поправить ответы</button>
+    </div>
+  </section>
+</main>
+
+<!-- Навигация: назад / далее и точки-этапы -->
+<nav class="bar" id="bar" aria-label="Навигация по этапам" hidden>
+  <div class="bar__in">
+    <div class="bar__dots" id="dots" role="group" aria-label="Этапы"></div>
+    <div class="bar__btns">
+      <button type="button" class="btn btn--ghost btn--back" id="backBtn" aria-label="Назад">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>Назад</span>
+      </button>
+      <button type="button" class="btn" id="nextBtn">
+        <span id="nextLabel">Далее</span>
+        <svg class="btn__arrow" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- Подвал: юридические документы и связь (ссылки подставляются из SITE в app.js) -->
+<footer class="foot" id="foot" hidden>
+  <div class="foot__in">
+    <div class="foot__brand">
+      <img src="assets/logo-white.svg" alt="1225 Digital Design" width="104" height="43">
+      <a class="btn btn--light" id="footMail" href="mailto:1225digital.design@gmail.com">Связаться</a>
+    </div>
+    <address class="foot__contacts">
+      <a href="tel:+4917631003264">+49 176 31003264</a>
+      <a href="mailto:1225digital.design@gmail.com">1225digital.design@gmail.com</a>
+    </address>
+    <ul class="foot__links" id="footLinks"></ul>
+    <p class="foot__copy">© <span id="year">2026</span> 1225 Digital Design</p>
+  </div>
+</footer>
+
+<!-- Окно с юридическим документом: текст подставляется из legal.js -->
+<dialog class="legal" id="legalDlg" aria-labelledby="legalTitle">
+  <div class="legal__head">
+    <h2 id="legalTitle"></h2>
+    <button type="button" class="legal__close" id="legalClose" aria-label="Закрыть">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+  <div class="legal__body" id="legalBody" tabindex="0"></div>
+  <div class="legal__foot"><button type="button" class="btn" id="legalOk">Закрыть</button></div>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden>
+  <span id="toastText"></span>
+  <button type="button" id="toastAction" hidden></button>
+</div>
+
+<noscript><p class="noscript">Для заполнения брифа нужен включённый JavaScript. Если не получается, напишите мне в Telegram, отправлю анкету другим способом.</p></noscript>
+
+<script src="config.js"></script>
+<script src="legal.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
